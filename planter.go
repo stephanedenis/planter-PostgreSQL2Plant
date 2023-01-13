@@ -5,10 +5,13 @@ import (
 	"database/sql"
 	"fmt"
 	"html/template"
+	"log"
 	"regexp"
 	"sort"
 	"strings"
+	"sync"
 
+	//"github.com/lib/pq"
 	_ "github.com/lib/pq" // postgres
 	"github.com/pkg/errors"
 )
@@ -20,12 +23,24 @@ type Queryer interface {
 	QueryRow(string, ...interface{}) *sql.Row
 }
 
+var sqlConnLock sync.Mutex
+
+func syncedQuery(db Queryer, statement string, arg1 string, arg2 string) (*sql.Rows, error) {
+	sqlConnLock.Lock()
+	defer sqlConnLock.Unlock()
+	if arg2 != "" {
+		return db.Query(statement, arg1, arg2)
+	}
+	return db.Query(statement, arg1)
+}
+
 // OpenDB opens database connection
 func OpenDB(connStr string) (*sql.DB, error) {
 	conn, err := sql.Open("postgres", connStr)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to connect to database")
 	}
+	log.Printf("Connecto to postgress database with connection string: %s", connStr)
 	return conn, nil
 }
 
@@ -58,10 +73,10 @@ type ForeignKey struct {
 
 // IsOneToOne returns true if one to one relation
 // - in case of composite pk
-//     * one to one
-//         * source table is composite pk && target table is composite pk
-//             * source table fks to target table are all pks
-//     * other cases are one to many
+//   - one to one
+//   - source table is composite pk && target table is composite pk
+//   - source table fks to target table are all pks
+//   - other cases are one to many
 func (k *ForeignKey) IsOneToOne() bool {
 	switch {
 	case k.SourceTable.IsCompositePK() && k.TargetTable.IsCompositePK():
@@ -141,10 +156,12 @@ func FindColumnByName(tbls []*Table, tableName, colName string) (*Column, bool) 
 
 // LoadColumnDef load Postgres column definition
 func LoadColumnDef(db Queryer, schema, table string) ([]*Column, error) {
-	colDefs, err := db.Query(columDefSQL, schema, table)
+
+	colDefs, err := syncedQuery(db, columDefSQL, schema, table)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to load table def")
+		return nil, errors.Wrap(err, "failed to load table def ("+schema+"."+table+") ")
 	}
+	log.Printf("load table def: %s.%s", schema, table)
 	var cols []*Column
 	for colDefs.Next() {
 		var c Column
@@ -162,13 +179,14 @@ func LoadColumnDef(db Queryer, schema, table string) ([]*Column, error) {
 			return nil, errors.Wrap(err, "failed to scan")
 		}
 		cols = append(cols, &c)
+		log.Printf("col: %+v", c.Name)
 	}
 	return cols, nil
 }
 
 // LoadForeignKeyDef load Postgres fk definition
 func LoadForeignKeyDef(db Queryer, schema string, tbls []*Table, tbl *Table) ([]*ForeignKey, error) {
-	fkDefs, err := db.Query(fkDefSQL, schema, tbl.Name)
+	fkDefs, err := syncedQuery(db, fkDefSQL, schema, tbl.Name)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to load fk def")
 	}
@@ -214,10 +232,16 @@ func LoadForeignKeyDef(db Queryer, schema string, tbls []*Table, tbl *Table) ([]
 
 // LoadTableDef load Postgres table definition
 func LoadTableDef(db Queryer, schema string) ([]*Table, error) {
-	tbDefs, err := db.Query(tableDefSQL, schema)
+	tbDefs, err := syncedQuery(db, tableDefSQL, schema, "")
+
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to load table def")
 	}
+	if err := tbDefs.Err(); err != nil {
+		return nil, fmt.Errorf("error when loading table def: %v", err)
+	}
+	defer tbDefs.Close()
+	//log.Printf("Found %d tables", tbDefs.)
 	var tbls []*Table
 	for tbDefs.Next() {
 		t := &Table{Schema: schema}
@@ -253,6 +277,7 @@ func TableToUMLEntry(tbls []*Table) ([]byte, error) {
 	}
 	var src []byte
 	for _, tbl := range tbls {
+		log.Printf("Generating UML for table: %+v", tbl.Name)
 		buf := new(bytes.Buffer)
 		if err := tpl.Execute(buf, tbl); err != nil {
 			return nil, errors.Wrapf(err, "failed to execute template: %s", tbl.Name)

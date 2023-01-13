@@ -1,0 +1,887 @@
+@startuml
+hide circle
+skinparam linetype ortho
+
+entity "**VersionInfo**" {
+  --
+  *""Version"": //bigint //
+  ""AppliedOn"": //timestamp without time zone //
+  ""Description"": //character varying(1024) //
+}
+
+entity "**__EFMigrationsHistory**" {
+  + ""MigrationId"": //character varying(150) [PK]//
+  --
+  *""ProductVersion"": //character varying(32) //
+}
+
+entity "**alert**" {
+  + ""id"": //uuid [PK]//
+  --
+  ""id_asp_net_user_creator"": //uuid //
+  ""is_active"": //boolean //
+  ""name"": //text //
+  ""description"": //text //
+  ""node_id"": //uuid [FK]//
+  ""alert_severity"": //text [FK]//
+  ""alert_threshold_comparator"": //text [FK]//
+  ""threshold_value"": //double precision //
+  ""alert_behavior"": //text [FK]//
+  ""alert_medium"": //text [FK]//
+  ""alert_category"": //text [FK]//
+  ""alert_message_subject"": //text //
+  ""alert_message_body"": //text //
+  ""renotify_interval_in_minutes"": //integer //
+  ""last_time_triggered_utc"": //timestamp with time zone //
+  ""emails"": //text[] //
+  ""phone_numbers"": //text[] //
+}
+
+entity "**alert_behavior**" {
+  + ""behavior"": //text [PK]//
+  --
+}
+
+entity "**alert_category**" {
+  + ""category"": //text [PK]//
+  --
+}
+
+entity "**alert_chain**" {
+  + ""id_alert"": //uuid [PK][FK]//
+  + ""id_linked_alert"": //uuid [PK]//
+  --
+  *""id_linked_alert"": //uuid [FK]//
+}
+
+entity "**alert_medium**" {
+  + ""medium"": //text [PK]//
+  --
+}
+
+entity "**alert_severity**" {
+  + ""severity"": //text [PK]//
+  --
+}
+
+entity "**alert_threshold_comparator**" {
+  + ""comparator"": //text [PK]//
+  --
+}
+
+entity "**alert_webhook**" {
+  + ""id_alert"": //uuid [PK][FK]//
+  --
+  *""url"": //text //
+  *""headers"": //jsonb //
+}
+
+entity "**asp_net_role_claims**" {
+  + ""id"": //serial [PK]//
+  --
+  *""role_id"": //uuid [FK]//
+  ""claim_type"": //text //
+  ""claim_value"": //text //
+}
+
+entity "**asp_net_roles**" {
+  + ""id"": //uuid [PK]//
+  --
+  ""name"": //character varying(256) //
+  ""normalized_name"": //character varying(256) //
+  ""concurrency_stamp"": //text //
+}
+
+entity "**asp_net_user_claims**" {
+  + ""id"": //serial [PK]//
+  --
+  *""user_id"": //uuid [FK]//
+  ""claim_type"": //text //
+  ""claim_value"": //text //
+}
+
+entity "**asp_net_user_logins**" {
+  + ""login_provider"": //text [PK]//
+  + ""provider_key"": //text [PK]//
+  --
+  ""provider_display_name"": //text //
+  *""user_id"": //uuid [FK]//
+}
+
+entity "**asp_net_user_roles**" {
+  + ""user_id"": //uuid [PK][FK]//
+  + ""role_id"": //uuid [PK][FK]//
+  --
+}
+
+entity "**asp_net_user_tokens**" {
+  + ""user_id"": //uuid [PK][FK]//
+  + ""login_provider"": //text [PK]//
+  + ""name"": //text [PK]//
+  --
+  ""value"": //text //
+}
+
+entity "**asp_net_users**" {
+  + ""id"": //uuid [PK]//
+  --
+  *""id"": //uuid //
+  ""user_name"": //character varying(256) //
+  ""normalized_user_name"": //character varying(256) //
+  ""email"": //character varying(256) //
+  ""normalized_email"": //character varying(256) //
+  *""email_confirmed"": //boolean //
+  ""password_hash"": //text //
+  ""security_stamp"": //text //
+  ""concurrency_stamp"": //text //
+  ""phone_number"": //text //
+  *""phone_number_confirmed"": //boolean //
+  *""two_factor_enabled"": //boolean //
+  ""lockout_end"": //timestamp with time zone //
+  *""lockout_enabled"": //boolean //
+  *""access_failed_count"": //integer //
+  ""first_name"": //text //
+  ""last_name"": //text //
+  ""language"": //text //
+  *""timeout"": //integer //
+  *""user_group_id"": //uuid [FK]//
+  *""reset_password_at_next_login"": //boolean //
+  *""last_login"": //timestamp with time zone //
+  *""is_sso_user"": //boolean //
+}
+
+entity "**automated_report**" {
+  + ""id_schedule"": //uuid [PK][FK]//
+  --
+  *""title"": //text //
+  *""file_name_without_extension_template"": //text //
+  *""description"": //text //
+  ""format"": //text //
+  ""apply_users_access_rights"": //boolean //
+  ""id_dashboard"": //uuid [FK]//
+  *""apply_users_language"": //boolean //
+  *""language"": //text //
+}
+
+entity "**automated_report_email_subscriber**" {
+  + ""id_automated_report"": //uuid [PK][FK]//
+  + ""email"": //text [PK]//
+  --
+}
+
+entity "**automated_report_execution_history**" {
+  + ""id_automated_report"": //uuid [PK][FK]//
+  + ""occurred_on"": //timestamp with time zone [PK]//
+  --
+  ""execution_result"": //text //
+  ""failed_recipients"": //text[] //
+}
+
+entity "**automated_report_group_subscriber**" {
+  + ""id_automated_report"": //uuid [PK][FK]//
+  + ""id_user_group"": //uuid [PK][FK]//
+  --
+}
+
+entity "**automated_report_user_subscriber**" {
+  + ""id_automated_report"": //uuid [PK][FK]//
+  + ""user_name"": //text [PK][FK]//
+  --
+}
+
+entity "**business_hours**" {
+  + ""id_organizational_tree"": //uuid [PK][FK]//
+  + ""start_date"": //timestamp with time zone [PK]//
+  --
+  ""business_hours"": //jsonb //
+  ""end_date"": //timestamp with time zone [FK]//
+}
+
+entity "**crm_devices**" {
+  + ""mac_address"": //text [PK]//
+  + ""account_id"": //uuid [PK]//
+  --
+  ""account_name"": //text //
+  *""parent_account_id"": //uuid //
+  ""parent_account_name"": //text //
+  ""device_id_organizational_tree"": //uuid //
+  ""store_id_organizational_tree"": //uuid //
+  *""imported_on"": //timestamp without time zone //
+  ""phoenix_mapped_on"": //timestamp without time zone //
+}
+
+entity "**dashboard**" {
+  + ""id"": //uuid [PK]//
+  --
+  ""name"": //text //
+  ""json"": //jsonb //
+}
+
+entity "**dashboard_template_link**" {
+  + ""dashboard_id"": //uuid [PK][FK]//
+  --
+  ""user_group_id"": //uuid [FK]//
+  ""template_name"": //text [FK]//
+}
+
+entity "**duplicate_mo_running_total_to_delete_2022_06_24_00heure**" {
+  --
+  ""id_time_series"": //bigint //
+  ""occurred_on"": //timestamp without time zone //
+  ""value"": //double precision //
+  ""prev_value"": //double precision //
+}
+
+entity "**event_log**" {
+  + ""occurred_on"": //timestamp with time zone [PK]//
+  + ""id"": //bigserial [PK]//
+  --
+  ""id_requester"": //text //
+  ""command"": //text //
+  ""target"": //text //
+  ""target_entity"": //text //
+  ""target_entity_descriptor"": //text //
+  ""target_pk_column"": //text //
+  ""target_pk_type"": //text //
+  ""result"": //text //
+  ""execution_time_millis"": //integer //
+  ""description"": //text //
+  ""requester"": //text //
+  ""text_searchable_index_col"": //tsvector //
+}
+
+entity "**external_data_import_task**" {
+  + ""id"": //uuid [PK]//
+  + ""id_organizational_tree"": //uuid [PK][FK]//
+  --
+  *""name"": //text //
+  *""id_organizational_tree"": //uuid //
+  *""file_mask"": //text //
+  *""source_folder_path"": //text //
+  *""archive_folder_path"": //text //
+  *""disabled_on"": //timestamp with time zone //
+  ""datetime_format"": //text //
+}
+
+entity "**floor_value**" {
+  + ""id_occupancy_config"": //integer [PK][FK]//
+  + ""day_of_week"": //text [PK]//
+  --
+  ""time"": //time without time zone //
+  ""floor_value"": //double precision //
+}
+
+entity "**formula**" {
+  + ""name"": //text [PK]//
+  + ""user_group_id"": //uuid [PK][FK]//
+  --
+  *""expression"": //text //
+  *""is_percentage"": //boolean //
+}
+
+entity "**frequency**" {
+  + ""frequency"": //text [PK]//
+  --
+}
+
+entity "**gap_tmp**" {
+  + ""node_name"": //text [PK]//
+  --
+  *""node_name2"": //text //
+  *""maxocc"": //integer //
+}
+
+entity "**live_view**" {
+  + ""id"": //uuid [PK]//
+  --
+  *""id_time_series"": //bigint [FK]//
+  *""view_name"": //text //
+  *""warning_threshold"": //integer //
+  *""alert_threshold"": //integer //
+  *""black_screen_outside_business_hours"": //boolean //
+  ""threshold_delta"": //integer //
+  ""is_delta_percentage"": //boolean //
+}
+
+entity "**live_view_alert**" {
+  --
+  ""id_live_view"": //uuid [FK]//
+  ""id_alert"": //uuid [FK]//
+}
+
+entity "**live_view_history**" {
+  + ""id_live_view"": //uuid [PK]//
+  + ""id_time_series"": //integer [PK]//
+  + ""id_organizational_tree"": //uuid [PK]//
+  + ""start_date"": //timestamp without time zone [PK]//
+  --
+  ""warning_threshold"": //integer //
+  ""alert_threshold"": //integer //
+  ""end_date"": //timestamp without time zone //
+}
+
+entity "**measurement_observation**" {
+  + ""occurred_on"": //timestamp without time zone [PK]//
+  + ""id_time_series"": //bigint [PK][FK]//
+  --
+  ""value"": //double precision //
+  ""created_on"": //timestamp with time zone //
+  ""updated_on"": //timestamp with time zone //
+  ""in_business_hour"": //boolean //
+}
+
+entity "**measurement_protocol**" {
+  + ""id"": //integer [PK]//
+  --
+  ""name"": //text //
+  ""aliases"": //text[] //
+}
+
+entity "**mobile_performance_compared_node_left**" {
+  + ""id_asp_net_users"": //uuid [PK][FK]//
+  + ""id_organizational_tree"": //uuid [PK]//
+  --
+}
+
+entity "**mobile_performance_compared_node_right**" {
+  + ""id_asp_net_users"": //uuid [PK][FK]//
+  + ""id_organizational_tree"": //uuid [PK]//
+  --
+}
+
+entity "**mobile_ranking_compared_node_left**" {
+  + ""id_asp_net_users"": //uuid [PK][FK]//
+  + ""id_organizational_tree"": //uuid [PK]//
+  --
+}
+
+entity "**mobile_ranking_compared_node_right**" {
+  + ""id_asp_net_users"": //uuid [PK][FK]//
+  + ""id_organizational_tree"": //uuid [PK]//
+  --
+}
+
+entity "**mobile_ranking_leaderboard_node**" {
+  + ""id_asp_net_users"": //uuid [PK][FK]//
+  + ""id_organizational_tree"": //uuid [PK]//
+  --
+}
+
+entity "**mobile_settings**" {
+  + ""id_asp_net_users"": //uuid [PK][FK]//
+  + ""user_group_id"": //uuid [PK][FK]//
+  --
+  *""id_asp_net_users"": //uuid //
+  *""has_access_performance"": //boolean //
+  *""has_access_ranking"": //boolean //
+  *""performance_left_group_label"": //text //
+  *""performance_right_group_label"": //text //
+  *""ranking_left_group_label"": //text //
+  *""ranking_right_group_label"": //text //
+  ""performance_formula"": //text [FK]//
+  ""ranking_formula"": //text [FK]//
+  *""performance_p1"": //text //
+  *""performance_p2"": //text //
+  *""ranking_p1"": //text //
+  *""performance_aggregation_function"": //text //
+  *""ranking_aggregation_function"": //text //
+  ""is_tablet_mobile"": //boolean //
+  ""has_access_dashboard"": //boolean //
+  ""has_access_occupancy"": //boolean //
+  ""default_occupancy_live_view_id"": //uuid [FK]//
+}
+
+entity "**node_type**" {
+  + ""id"": //smallint [PK]//
+  --
+  ""type"": //text //
+}
+
+entity "**occupancy_config**" {
+  --
+  *""id"": //integer //
+  ""time_series_in_ids"": //bigint[] //
+  ""time_series_out_ids"": //bigint[] //
+  ""id_time_series"": //bigint [FK]//
+}
+
+entity "**occupancy_reset**" {
+  + ""id_schedule"": //uuid [PK][FK]//
+  --
+  *""value"": //double precision //
+}
+
+entity "**organizational_tree**" {
+  + ""id"": //uuid [PK]//
+  --
+  ""node_name"": //text //
+  ""path"": //ltree //
+  *""id_node_type"": //smallint [FK]//
+  ""attributes"": //jsonb //
+  *""reference_id"": //text //
+}
+
+entity "**organizational_tree_file**" {
+  + ""id_organizational_tree"": //uuid [PK][FK]//
+  + ""type"": //text [PK][FK]//
+  --
+  ""updated_on"": //timestamp with time zone //
+  ""file"": //bytea //
+}
+
+entity "**organizational_tree_file_type**" {
+  + ""type"": //text [PK]//
+  --
+}
+
+entity "**organizational_tree_occupancy_reset**" {
+  --
+  ""id_organizational_tree"": //uuid [FK]//
+  ""id_occupancy_reset"": //uuid [FK]//
+}
+
+entity "**organizational_tree_time_series**" {
+  + ""id_organizational_tree"": //uuid [PK][FK]//
+  + ""id_time_series"": //bigint [PK][FK]//
+  --
+}
+
+entity "**report**" {
+  + ""id"": //uuid [PK]//
+  --
+  *""default_title"": //text //
+  *""folder_name"": //text //
+  *""file_name"": //text //
+}
+
+entity "**schedule**" {
+  + ""id"": //uuid [PK]//
+  --
+  ""name"": //text //
+  ""created_on"": //timestamp with time zone //
+  ""updated_on"": //timestamp with time zone //
+  ""frequency"": //text [FK]//
+  ""repeat_on"": //text[] //
+  ""occur_at"": //timestamp with time zone //
+  ""occur_until"": //timestamp with time zone //
+  ""timezone"": //text //
+  *""disabled_on"": //timestamp with time zone //
+  ""created_by"": //text [FK]//
+  ""updated_by"": //text //
+}
+
+entity "**sisconper_demo_device_mapping**" {
+  --
+  ""source_device_id"": //uuid //
+  ""source_mac_address"": //text //
+  ""source_path"": //ltree //
+  ""target_device_id"": //uuid //
+  ""target_mac_address"": //text //
+  ""target_path"": //ltree //
+}
+
+entity "**sisconper_demo_nodes_mapping**" {
+  --
+  ""source_store_id"": //uuid //
+  ""source_node_name"": //text //
+  ""source_path"": //ltree //
+  ""target_store_id"": //uuid //
+  ""target_node_name"": //text //
+  ""target_path"": //ltree //
+}
+
+entity "**sisconper_demo_ts_mapping**" {
+  --
+  ""source_id_time_series"": //bigint //
+  ""source_id_measurement_protocol"": //integer //
+  ""source_compound_id"": //text //
+  ""target_id_time_series"": //bigint //
+  ""target_ts_name"": //text //
+  ""target_id_measurement_protocol"": //integer //
+  ""target_compound_id"": //text //
+}
+
+entity "**special_hours**" {
+  + ""id_organizational_tree"": //uuid [PK][FK]//
+  + ""date"": //date [PK]//
+  --
+  ""start_time"": //time without time zone //
+  ""end_time"": //time without time zone //
+}
+
+entity "**temp_aubainerie_export_traffic_time_series**" {
+  --
+  ""id_time_series"": //bigint //
+}
+
+entity "**temp_benjo_bh_to_recompute**" {
+  --
+  ""id_organizational_tree"": //uuid //
+  ""business_hours"": //jsonb //
+  ""start_date"": //timestamp with time zone //
+  ""end_date"": //timestamp with time zone //
+}
+
+entity "**temp_benjo_ts_bh**" {
+  --
+  ""days"": //timestamp with time zone //
+  ""id_organizational_tree"": //uuid //
+  ""id_time_series"": //bigint //
+  ""realbh"": //jsonb //
+  ""start_time"": //text //
+  ""end_time"": //text //
+}
+
+entity "**temp_benjo_ts_bh_to_update**" {
+  --
+  ""id_time_series"": //bigint //
+  ""occurred_on"": //timestamp without time zone //
+  ""in_business_hour"": //boolean //
+  ""occurred_on_hour"": //text //
+  ""new_in_bh_hour"": //boolean //
+}
+
+entity "**temp_bizou_boutiques_fermees**" {
+  --
+  ""node_id"": //text //
+  ""macaddress"": //text //
+  ""node_name"": //text //
+}
+
+entity "**temp_cominar_nodes_otts**" {
+  --
+  ""id_organizational_tree"": //uuid //
+  ""id_time_series"": //bigint //
+}
+
+entity "**temp_device_time_series**" {
+  --
+  ""mac_address"": //text //
+  ""row_number"": //bigint //
+  ""id_organizational_tree"": //uuid //
+  ""id_time_series"": //bigint //
+}
+
+entity "**temp_mac_addresses_to_delete**" {
+  --
+  ""mac_address"": //text //
+  ""row_number"": //bigint //
+  ""count_time_series"": //integer //
+}
+
+entity "**temp_phnx_2541_m027**" {
+  --
+  ""value"": //double precision //
+  ""occurred_on"": //timestamp without time zone //
+  ""created_on"": //timestamp with time zone //
+  ""updated_on"": //timestamp with time zone //
+  ""id_time_series"": //bigint //
+  ""in_business_hour"": //boolean //
+}
+
+entity "**temp_test**" {
+  --
+  ""date"": //date //
+  ""month_first_day"": //date //
+  ""month_first_day_dow"": //integer //
+  ""calendar_first_day_of_week_date"": //date //
+  ""date_diff_between_date_and_first_calendar_date"": //integer //
+  ""return_monthly_week_number"": //integer //
+}
+
+entity "**temp_ts_bh_to_update**" {
+  --
+  ""full_path_name"": //text //
+  ""id_time_series"": //bigint //
+  ""occurred_on"": //timestamp without time zone //
+  ""in_business_hour"": //boolean //
+  ""occurred_on_hour"": //text //
+  ""realbh"": //jsonb //
+  ""new_in_bh_hour"": //boolean //
+}
+
+entity "**temp_water_tower_bh_to_recompute**" {
+  --
+  ""id_organizational_tree"": //uuid //
+  ""business_hours"": //jsonb //
+  ""start_date"": //timestamp with time zone //
+  ""end_date"": //timestamp with time zone //
+}
+
+entity "**template**" {
+  + ""name"": //text [PK]//
+  + ""user_group_id"": //uuid [PK][FK]//
+  --
+  *""dashboard"": //jsonb //
+  ""user_creation_action"": //text //
+}
+
+entity "**time_series**" {
+  + ""id"": //bigint [PK]//
+  --
+  ""name"": //text //
+  ""aggregation_in_seconds"": //integer //
+  *""id_measurement_protocol"": //integer [FK]//
+  *""meta_tags"": //text[] //
+  ""compound_id"": //text //
+  ""used_by_formula"": //boolean //
+}
+
+entity "**urbn_tmp**" {
+  + ""node_name"": //text [PK]//
+  --
+  *""maxocc"": //integer //
+  *""delta"": //integer //
+}
+
+entity "**user_api**" {
+  + ""id_asp_net_users"": //uuid [PK][FK]//
+  --
+  *""api_key"": //bytea //
+}
+
+entity "**user_dashboard**" {
+  + ""id_dashboard"": //uuid [PK][FK]//
+  + ""id_asp_net_users"": //uuid [PK][FK]//
+  --
+  *""default_dashboard"": //boolean //
+  *""default_mobile_dashboard"": //boolean //
+}
+
+entity "**user_group**" {
+  + ""id"": //uuid [PK][FK]//
+  --
+  *""name"": //text //
+  ""default_dashboard_template"": //text [FK]//
+  ""default_mobile_dashboard_template"": //text [FK]//
+  ""user_retention_policy_days"": //integer //
+  ""support_chat_enabled"": //boolean //
+}
+
+entity "**user_group_report**" {
+  + ""id_user_group"": //uuid [PK][FK]//
+  + ""id_report"": //uuid [PK][FK]//
+  --
+  ""report_title"": //text //
+}
+
+entity "**user_organizational_tree**" {
+  + ""id_organizational_tree"": //uuid [PK][FK]//
+  + ""id_asp_net_users"": //uuid [PK][FK]//
+  --
+  *""restricted_access"": //boolean //
+}
+
+entity "**user_report_exclusion**" {
+  + ""id_asp_net_users"": //uuid [PK][FK]//
+  + ""id_report"": //uuid [PK][FK]//
+  --
+}
+
+entity "**user_report_settings**" {
+  + ""id_asp_net_users"": //uuid [PK][FK]//
+  + ""id_report"": //uuid [PK][FK]//
+  --
+  ""settings"": //jsonb //
+}
+
+"**alert**"   }--  "**alert_behavior**"
+
+"**alert**"   }--  "**alert_category**"
+
+"**alert**"   }--  "**alert_medium**"
+
+"**alert**"   }--  "**organizational_tree**"
+
+"**alert**"   }--  "**alert_severity**"
+
+"**alert**"   }--  "**alert_threshold_comparator**"
+
+"**alert_chain**"   }--  "**alert**"
+
+"**alert_chain**"   }--  "**alert**"
+
+"**alert_chain**"   }--  "**alert**"
+
+"**alert_webhook**"  ||-||  "**alert**"
+
+"**asp_net_role_claims**"   }--  "**asp_net_roles**"
+
+"**asp_net_user_claims**"   }--  "**asp_net_users**"
+
+"**asp_net_user_claims**"   }--  "**asp_net_users**"
+
+"**asp_net_user_logins**"   }--  "**asp_net_users**"
+
+"**asp_net_user_logins**"   }--  "**asp_net_users**"
+
+"**asp_net_user_roles**"   }--  "**asp_net_roles**"
+
+"**asp_net_user_roles**"   }--  "**asp_net_roles**"
+
+"**asp_net_user_roles**"   }--  "**asp_net_users**"
+
+"**asp_net_user_roles**"   }--  "**asp_net_users**"
+
+"**asp_net_user_tokens**"   }--  "**asp_net_users**"
+
+"**asp_net_user_tokens**"   }--  "**asp_net_users**"
+
+"**asp_net_users**"   }--  "**user_group**"
+
+"**automated_report**"   }--  "**dashboard**"
+
+"**automated_report**"  ||-||  "**schedule**"
+
+"**automated_report_email_subscriber**"   }--  "**automated_report**"
+
+"**automated_report_execution_history**"   }--  "**automated_report**"
+
+"**automated_report_group_subscriber**"   }--  "**automated_report**"
+
+"**automated_report_group_subscriber**"   }--  "**user_group**"
+
+"**automated_report_user_subscriber**"   }--  "**automated_report**"
+
+"**automated_report_user_subscriber**"   }--  "**asp_net_users**"
+
+"**business_hours**"   }--  "**business_hours**"
+
+"**business_hours**"   }--  "**business_hours**"
+
+"**business_hours**"   }--  "**organizational_tree**"
+
+"**dashboard_template_link**"  ||-||  "**dashboard**"
+
+"**dashboard_template_link**"   }--  "**template**"
+
+"**dashboard_template_link**"   }--  "**template**"
+
+"**external_data_import_task**"   }--  "**organizational_tree**"
+
+"**external_data_import_task**"   }--  "**organizational_tree**"
+
+"**floor_value**"   }--  "**occupancy_config**"
+
+"**formula**"   }--  "**user_group**"
+
+"**live_view**"   }--  "**time_series**"
+
+"**live_view_alert**"   }--  "**alert**"
+
+"**live_view_alert**"   }--  "**live_view**"
+
+"**measurement_observation**"   }--  "**time_series**"
+
+"**measurement_observation**"   }--  "**time_series**"
+
+"**mobile_performance_compared_node_left**"   }--  "**mobile_settings**"
+
+"**mobile_performance_compared_node_left**"   }--  "**mobile_settings**"
+
+"**mobile_performance_compared_node_right**"   }--  "**mobile_settings**"
+
+"**mobile_performance_compared_node_right**"   }--  "**mobile_settings**"
+
+"**mobile_ranking_compared_node_left**"   }--  "**mobile_settings**"
+
+"**mobile_ranking_compared_node_left**"   }--  "**mobile_settings**"
+
+"**mobile_ranking_compared_node_right**"   }--  "**mobile_settings**"
+
+"**mobile_ranking_compared_node_right**"   }--  "**mobile_settings**"
+
+"**mobile_ranking_leaderboard_node**"   }--  "**mobile_settings**"
+
+"**mobile_ranking_leaderboard_node**"   }--  "**mobile_settings**"
+
+"**mobile_settings**"   }--  "**live_view**"
+
+"**mobile_settings**"   }--  "**formula**"
+
+"**mobile_settings**"   }--  "**formula**"
+
+"**mobile_settings**"   }--  "**formula**"
+
+"**mobile_settings**"   }--  "**formula**"
+
+"**mobile_settings**"   }--  "**asp_net_users**"
+
+"**mobile_settings**"   }--  "**asp_net_users**"
+
+"**mobile_settings**"   }--  "**asp_net_users**"
+
+"**mobile_settings**"   }--  "**asp_net_users**"
+
+"**mobile_settings**"   }--  "**asp_net_users**"
+
+"**occupancy_config**"   }--  "**time_series**"
+
+"**occupancy_reset**"  ||-||  "**schedule**"
+
+"**organizational_tree**"   }--  "**node_type**"
+
+"**organizational_tree_file**"   }--  "**organizational_tree_file_type**"
+
+"**organizational_tree_file**"   }--  "**organizational_tree**"
+
+"**organizational_tree_occupancy_reset**"   }--  "**occupancy_reset**"
+
+"**organizational_tree_occupancy_reset**"   }--  "**organizational_tree**"
+
+"**organizational_tree_time_series**"   }--  "**organizational_tree**"
+
+"**organizational_tree_time_series**"   }--  "**time_series**"
+
+"**schedule**"   }--  "**asp_net_users**"
+
+"**schedule**"   }--  "**frequency**"
+
+"**schedule**"   }--  "**asp_net_users**"
+
+"**special_hours**"   }--  "**organizational_tree**"
+
+"**template**"   }--  "**user_group**"
+
+"**time_series**"   }--  "**measurement_protocol**"
+
+"**user_api**"  ||-||  "**asp_net_users**"
+
+"**user_api**"  ||-||  "**asp_net_users**"
+
+"**user_dashboard**"   }--  "**asp_net_users**"
+
+"**user_dashboard**"   }--  "**asp_net_users**"
+
+"**user_dashboard**"   }--  "**dashboard**"
+
+"**user_group**"  ||-||  "**template**"
+
+"**user_group**"   }--  "**template**"
+
+"**user_group**"  ||-||  "**template**"
+
+"**user_group**"   }--  "**template**"
+
+"**user_group_report**"   }--  "**report**"
+
+"**user_group_report**"   }--  "**user_group**"
+
+"**user_organizational_tree**"   }--  "**asp_net_users**"
+
+"**user_organizational_tree**"   }--  "**asp_net_users**"
+
+"**user_organizational_tree**"   }--  "**organizational_tree**"
+
+"**user_report_exclusion**"   }--  "**report**"
+
+"**user_report_exclusion**"   }--  "**asp_net_users**"
+
+"**user_report_exclusion**"   }--  "**asp_net_users**"
+
+"**user_report_settings**"   }--  "**report**"
+
+"**user_report_settings**"   }--  "**asp_net_users**"
+
+"**user_report_settings**"   }--  "**asp_net_users**"
+@enduml

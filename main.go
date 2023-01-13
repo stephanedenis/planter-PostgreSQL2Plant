@@ -4,6 +4,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"runtime"
 
 	"github.com/alecthomas/kingpin"
 )
@@ -16,11 +17,14 @@ var (
 	outFile     = kingpin.Flag("output", "output file path").Short('o').String()
 	targetTbls  = kingpin.Flag("table", "target tables").Short('t').Strings()
 	xTargetTbls = kingpin.Flag("exclude", "target tables").Short('x').Strings()
-	title = kingpin.Flag("title", "Diagram title").Short('T').String()
+	title       = kingpin.Flag("title", "Diagram title").Short('T').String()
 )
+
 
 func main() {
 	kingpin.Parse()
+
+	log.Printf("GOMAXPROCS=%d", runtime.GOMAXPROCS(0))
 
 	db, err := OpenDB(*connStr)
 	if err != nil {
@@ -52,9 +56,9 @@ func main() {
 	var src []byte
 	src = append([]byte("@startuml\n"))
 	if len(*title) != 0 {
-		src = append(src, []byte("title " + *title + "\n")...)
+		src = append(src, []byte("title "+*title+"\n")...)
 	}
-	src = append(src, []byte("hide circle\n" +
+	src = append(src, []byte("hide circle\n"+
 		"skinparam linetype ortho\n")...)
 	src = append(src, entry...)
 	src = append(src, rel...)
